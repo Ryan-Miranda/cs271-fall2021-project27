@@ -9,7 +9,7 @@ class Node:
         self.f = 0
 
     def __eq__(self, other):
-        return self.position == other.position
+        return self.position == other.position and self.f == other.f
 
     def __str__(self) -> str:
         return f'{self.pos} g:{self.g} h:{self.h} f:{self.f}'
@@ -51,6 +51,9 @@ def search(grid, cost, start, walls, boxes, goals):
     
     while len(frontier) > 0:
         outer_iterations += 1    
+
+        if outer_iterations % 1000 == 0:
+            print(outer_iterations)
 
         current_node = frontier[0]
         current_index = 0
