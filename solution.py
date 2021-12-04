@@ -1,6 +1,7 @@
 import A_star
+import sys
 
-def readInput():
+def readInputFromStdIn():
     M, N = [int(num) for num in input().split(' ')]
 
     wallSquares = getCoordinates( input().split(' ') )
@@ -8,6 +9,27 @@ def readInput():
     storageLocations = getCoordinates( input().split(' ') )
 
     X0, Y0 = [int(num)-1 for num in input().split(' ')]
+
+    return M, N, wallSquares, boxes, storageLocations, X0, Y0
+
+
+def readInputFromFile(fileNum=None):
+    directory = 'input_files/sokoban'
+
+    if fileNum:
+        file = open(directory + fileNum + '.txt')
+    else:
+        file = open(directory + '00.txt')
+
+    M, N = [int(num) for num in file.readline().split(' ')]
+
+    wallSquares = getCoordinates( file.readline().split(' ') )
+    boxes = getCoordinates( file.readline().split(' ') )
+    storageLocations = getCoordinates( file.readline().split(' ') )
+
+    X0, Y0 = [int(num)-1 for num in file.readline().split(' ')]
+
+    file.close()
 
     return M, N, wallSquares, boxes, storageLocations, X0, Y0
 
@@ -46,8 +68,16 @@ def printGrid(grid):
 
 
 if __name__ == '__main__':
-    M, N, wallSquares, boxes, storageLocations, X0, Y0 = readInput()
+    fileNum = None
+    if len(sys.argv) > 1:
+        fileNum = sys.argv[1]
+        
+    # M, N, wallSquares, boxes, storageLocations, X0, Y0 = readInputFromStdIn()
+
+    M, N, wallSquares, boxes, storageLocations, X0, Y0 = readInputFromFile(fileNum)
+
     grid = buildGrid(M, N, wallSquares, boxes, storageLocations, X0, Y0)
+    print('\nInitial grid: ')
     printGrid(grid)
 
     A_star.doSearch(grid, wallSquares, boxes, storageLocations, X0, Y0)

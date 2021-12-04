@@ -1,18 +1,26 @@
+import copy
+
 class Node:
 
-    def __init__(self, parent=None, position=None):
+    # Node contains parent node, position in the grid, what move was taken to get here, 
+    # list of box positions at that point in time, cost (g), manhattan dist (h), and 
+    # f (g + h)
+
+    def __init__(self, parent=None, position=None, move=None, boxes=None):
         self.parent = parent
         self.position = position
+        self.move = move
+        self.boxes = boxes
 
         self.g = 0
         self.h = 0
         self.f = 0
 
     def __eq__(self, other):
-        return self.position == other.position and self.f == other.f
+        return self.position == other.position and self.f == other.f and self.move == other.move and self.boxes == other.boxes
 
     def __str__(self) -> str:
-        return f'{self.pos} g:{self.g} h:{self.h} f:{self.f}'
+        return f'{self.position} g:{self.g} h:{self.h} f:{self.f} {self.move}'
 
 
 def return_path(current, grid):
@@ -21,7 +29,7 @@ def return_path(current, grid):
     result = [[-1 for i in range(N)] for j in range(M)]
 
     while current is not None:
-        path.append(current.position)
+        path.append((current.position, current.move))
         current = current.parent
     
     path = path[::-1]
@@ -38,7 +46,7 @@ def return_path(current, grid):
 
 
 def search(grid, cost, start, walls, boxes, goals):
-    start_node = Node(position=tuple(start))
+    start_node = Node(position=tuple(start), boxes=boxes)
 
     frontier = [start_node]  
     visited = [] 
@@ -46,7 +54,7 @@ def search(grid, cost, start, walls, boxes, goals):
     outer_iterations = 0
     max_iterations = (len(grid) // 2) ** 10
 
-    moves  =  {'up': [-1, 0 ], 'left': [ 0, -1], 'down': [ 1, 0 ], 'right': [ 0, 1 ]} 
+    moves  =  {'U': [-1, 0 ], 'L': [ 0, -1], 'D': [ 1, 0 ], 'R': [ 0, 1 ]} 
     M, N = (len(grid), len(grid[0]))
     
     while len(frontier) > 0:
@@ -69,7 +77,7 @@ def search(grid, cost, start, walls, boxes, goals):
         frontier.pop(current_index)
         visited.append(current_node)
 
-        if goalTest(boxes, goals):
+        if goalTest(current_node.boxes, goals):
             return return_path(current_node,grid)
 
         children = []
@@ -77,11 +85,12 @@ def search(grid, cost, start, walls, boxes, goals):
         for move in moves: 
             new_position = moves[move]
             node_position = (current_node.position[0] + new_position[0], current_node.position[1] + new_position[1])
+            newBoxes = current_node.boxes
 
             if inGrid(grid, node_position) and not isWall(walls, node_position):
 
-                if isBox(boxes, node_position):
-                    
+                if isBox(newBoxes, node_position):
+
                     # the new position of the box is just new_position x 2 (in the same direction)
                     boxNewPosition = (node_position[0] + new_position[0], node_position[1] + new_position[1])
 
@@ -89,13 +98,13 @@ def search(grid, cost, start, walls, boxes, goals):
                     if inGrid(grid, boxNewPosition) and not isWall(walls, boxNewPosition):
 
                         # if we push a box, the new position will be the same as current_position, but there will be a new g, f, h assoc with this state
-                        updateBoxLocation(boxes, node_position, boxNewPosition)
+                        newBoxes = updateBoxLocation(newBoxes, node_position, boxNewPosition)
                         node_position = current_node.position
 
                     else:
                         continue
                 
-                new_node = Node(current_node, node_position)
+                new_node = Node(current_node, node_position, move, newBoxes)
                 children.append(new_node)
 
         for child in children:
@@ -103,7 +112,7 @@ def search(grid, cost, start, walls, boxes, goals):
             if child not in visited:
 
                 child.g = current_node.g + cost
-                child.h = manhattanDistance(goals, boxes)
+                child.h = manhattanDistance(goals, child.boxes)
                 child.f = child.g + child.h
 
                 if len([i for i in frontier if child == i and child.g > i.g]) > 0:
@@ -111,10 +120,10 @@ def search(grid, cost, start, walls, boxes, goals):
 
                 frontier.append(child)
 
-    if goalTest(boxes, goals):
-        return return_path(current_node,grid)
-    else:
-        print('ERROR: no goal found but exiting anyway??')
+    # if goalTest(boxes, goals):
+    #     return return_path(current_node,grid)
+    # else:
+    #     print('ERROR: no goal found but exiting anyway??')
 
 
 def goalTest(boxes, goals):
@@ -123,8 +132,10 @@ def goalTest(boxes, goals):
 
 
 def updateBoxLocation(boxes, oldBoxPosition, newBoxPosition):
-    boxes.remove(oldBoxPosition)
-    boxes.add(newBoxPosition)
+    copy_boxes = copy.deepcopy(boxes)
+    copy_boxes.remove(oldBoxPosition)
+    copy_boxes.add(newBoxPosition)
+    return copy_boxes
 
 
 def manhattanDistance(goals, boxes):
