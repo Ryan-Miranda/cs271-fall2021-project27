@@ -1,18 +1,19 @@
 class Node:
 
-    def __init__(self, parent=None, position=None):
+    def __init__(self, parent=None, position=None, move=None):
         self.parent = parent
         self.position = position
+        self.move = move
 
         self.g = 0
         self.h = 0
         self.f = 0
 
     def __eq__(self, other):
-        return self.position == other.position and self.f == other.f
+        return self.position == other.position and self.f == other.f and self.move == other.move
 
     def __str__(self) -> str:
-        return f'{self.pos} g:{self.g} h:{self.h} f:{self.f}'
+        return f'{self.position} g:{self.g} h:{self.h} f:{self.f} {self.move}'
 
 
 def return_path(current, grid):
@@ -21,7 +22,7 @@ def return_path(current, grid):
     result = [[-1 for i in range(N)] for j in range(M)]
 
     while current is not None:
-        path.append(current.position)
+        path.append((current.position, current.move))
         current = current.parent
     
     path = path[::-1]
@@ -46,7 +47,7 @@ def search(grid, cost, start, walls, boxes, goals):
     outer_iterations = 0
     max_iterations = (len(grid) // 2) ** 10
 
-    moves  =  {'up': [-1, 0 ], 'left': [ 0, -1], 'down': [ 1, 0 ], 'right': [ 0, 1 ]} 
+    moves  =  {'U': [-1, 0 ], 'L': [ 0, -1], 'D': [ 1, 0 ], 'R': [ 0, 1 ]} 
     M, N = (len(grid), len(grid[0]))
     
     while len(frontier) > 0:
@@ -95,7 +96,7 @@ def search(grid, cost, start, walls, boxes, goals):
                     else:
                         continue
                 
-                new_node = Node(current_node, node_position)
+                new_node = Node(current_node, node_position, move)
                 children.append(new_node)
 
         for child in children:
@@ -111,10 +112,10 @@ def search(grid, cost, start, walls, boxes, goals):
 
                 frontier.append(child)
 
-    if goalTest(boxes, goals):
-        return return_path(current_node,grid)
-    else:
-        print('ERROR: no goal found but exiting anyway??')
+    # if goalTest(boxes, goals):
+    #     return return_path(current_node,grid)
+    # else:
+    #     print('ERROR: no goal found but exiting anyway??')
 
 
 def goalTest(boxes, goals):
