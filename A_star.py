@@ -72,13 +72,13 @@ def search(grid, cost, start, walls, boxes, goals):
                 
         if outer_iterations > max_iterations:
             print ("giving up on pathfinding, too many iterations")
-            return return_path(current_node,grid)
+            return return_path(current_node,grid), current_node.boxes
 
         frontier.pop(current_index)
         visited.append(current_node)
 
         if goalTest(current_node.boxes, goals):
-            return return_path(current_node,grid)
+            return return_path(current_node,grid), current_node.boxes
 
         children = []
 
@@ -185,7 +185,7 @@ def doSearch(grid, walls, boxes, goals, X0, Y0):
     goals = set(goals)
     walls = set(walls)
 
-    path = search(grid, cost, start, walls, boxes, goals)
+    path, boxes = search(grid, cost, start, walls, boxes, goals)
 
     print(f'Final location of boxes: {boxes}')
     print(f'Goal locations: {goals}')
