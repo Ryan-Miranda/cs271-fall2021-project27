@@ -10,13 +10,14 @@ def from_stdin():
     return M, N, wallSquares, boxes, storageLocations, X0, Y0
 
 
-def from_file(fileNum=None):
-    directory = 'input_files/sokoban'
+def from_file(fileNum=None, path=None):
+    if path == None:
+        path = 'input_files/sokoban'
 
     if fileNum:
-        file = open(directory + fileNum + '.txt')
+        file = open(path + fileNum + '.txt')
     else:
-        file = open(directory + '02.txt')
+        file = open(path + '02.txt')
 
     M, N = [int(num) for num in file.readline().split(' ')]
 

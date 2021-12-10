@@ -6,11 +6,13 @@ class Node:
     # list of box positions at that point in time, cost (g), manhattan dist (h), and 
     # f (g + h)
 
-    def __init__(self, parent=None, position=None, move=None, boxes=None):
+    def __init__(self, parent=None, position=None, move=None, boxes=None, goals=None, setBoxes=None):
         self.parent = parent
         self.position = position
         self.move = move
         self.boxes = boxes
+        self.goals = goals
+        self.setBoxes = setBoxes
 
         self.g = 0
         self.h = 0
@@ -27,7 +29,7 @@ class Node:
 
 
     def value(self, explore = 0.5):
-        # calculates UCT value of the node, used in MCTS
+        # calculates UCB value of the node, used in MCTS
         if self.N == 0:
             return 0 if explore == 0 else float('inf')
         else:

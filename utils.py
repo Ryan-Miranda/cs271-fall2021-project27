@@ -1,4 +1,5 @@
 from node import Node
+import time
 
 MOVES = {'U': [-1, 0], 'L': [0, -1], 'D': [1, 0], 'R': [0, 1]}
 
@@ -12,6 +13,8 @@ def generateChildren(current_node, boundaries, walls):
             current_node.position[1] + new_position[1]
         )
         newBoxes = current_node.boxes
+        newGoals = current_node.goals
+        setBoxes = current_node.setBoxes
 
         if inGrid(node_position, boundaries) and not isWall(node_position, walls):
 
@@ -23,16 +26,24 @@ def generateChildren(current_node, boundaries, walls):
                 )
 
                 # if the box's new position is valid
-                if inGrid(boxNewPosition, boundaries) and not isWall(boxNewPosition, walls):
+                if inGrid(boxNewPosition, boundaries) and not isWall(boxNewPosition, walls) and not isBox(boxNewPosition, newBoxes):
 
                     # if we push a box, the new position will be the same as current_position, but there will be a new g, f, h assoc with this state
                     newBoxes = updateBoxLocation(newBoxes, node_position, boxNewPosition)
+
+                    # if box was pushed onto a goal, remove it from the box list used in Manhttan Distance h
+                    # and the goal is now 'occupied'
+                    if boxNewPosition in newGoals:
+                        newBoxes.remove(boxNewPosition)
+                        newGoals.remove(boxNewPosition)
+                        setBoxes.add(boxNewPosition)
+
                     node_position = current_node.position
 
                 else:
                     continue
 
-            new_node = Node(current_node, node_position, move, newBoxes)
+            new_node = Node(current_node, node_position, move, newBoxes, newGoals, setBoxes)
             children.append(new_node)
 
     return children
@@ -76,8 +87,7 @@ def manhattanDistance(goals, boxes):
     dist = 0
 
     for goal in goals:
-        box, d = min([(b, calcManhattan(b, goal))
-                    for b in boxes_copy], key=lambda t: t[1])
+        box, d = min([(b, calcManhattan(b, goal)) for b in boxes_copy], key=lambda t: t[1])
         dist += d
         boxes_copy.remove(box)
 
@@ -96,7 +106,7 @@ def return_path(node):
         node = node.parent
 
     path = path[::-1]
-    return path
+    return path, time.time()
 
 
 def printPath(path):
